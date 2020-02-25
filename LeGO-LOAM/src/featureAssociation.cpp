@@ -660,43 +660,6 @@
 
 
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
     void TransformToStart(PointType const * const pi, PointType * const po)
     {
         float s = 10 * (pi->intensity - int(pi->intensity));
@@ -1659,28 +1622,3 @@
 
         
 };
-
-
-
-
-int main(int argc, char** argv)
-{
-    ros::init(argc, argv, "lego_loam");
-
-    ROS_INFO("\033[1;32m---->\033[0m Feature Association Started.");
-
-    
-
-    ros::Rate rate(200);
-    while (ros::ok())
-    {
-        ros::spinOnce();
-
-        FA.runFeatureAssociation();
-
-        rate.sleep();
-    }
-    
-    ros::spin();
-    return 0;
-}

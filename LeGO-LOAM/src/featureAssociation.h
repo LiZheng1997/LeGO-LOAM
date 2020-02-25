@@ -11,6 +11,48 @@ class FeatureAssociation{
         ~FeatureAssociation();
 
         void runFeatureAssociation();
+
+    public:
+        void initializationValue();
+        void updateImuRollPitchYawStartSinCos();
+        void ShiftToStartIMU();
+        void VeloToStartIMU();
+        void TransformToStartIMU();
+        void AccumulateIMUShiftAndRotation();
+        void imuHandler();
+        void adjustDistortion();
+        void calculateSmoothness();
+        void markOccludedPoints();
+        void extractFeatures();
+        void publishCloud();
+
+        void TransformToStart(PointType const *const pi, PointType *const po);
+        void TransformToEnd(PointType const *const pi, PointType *const po);
+
+        void PluginIMURotation(float bcx, float bcy, float bcz, float blx, float bly, float blz, 
+                           float alx, float aly, float alz, float &acx, float &acy, float &acz);
+        void AccumulateRotation(float cx, float cy, float cz, float lx, float ly,
+                                float lz, float &ox, float &oy, float &oz);
+
+        void rad2deg(double radians);
+        void deg2rad(double degrees);
+
+        void findCorrespondingCornerFeatures(int iterCount);
+        void findCorrespondingSurfFeatures(int iterCount);
+
+        bool calculateTransformationSurf(int iterCount);
+        bool calculateTransformationCorner(int iterCount);
+        bool calculateTransformation(int iterCount);
+
+        void checkSystemInitialization();
+        void updateInitialGuess();
+        void updateTransformation();
+
+        void integrateTransformation();
+        void publishOdometry();
+
+        void adjustOutlierCloud();
+        void publishCloudsLast();
     
     private:
 
