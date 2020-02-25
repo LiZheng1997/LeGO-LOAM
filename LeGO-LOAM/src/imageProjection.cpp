@@ -165,20 +165,11 @@ public:
     
     void cloudHandler(const sensor_msgs::PointCloud2ConstPtr& laserCloudMsg){
 
+        /*Move this handler to the main function, to process all 
+        data in those function and work sequentialy.
+        */
         // 1. Convert ros message to pcl point cloud
         copyPointCloud(laserCloudMsg);
-        // 2. Start and end angle of a scan
-        findStartEndAngle();
-        // 3. Range image projection
-        projectPointCloud();
-        // 4. Mark ground points
-        groundRemoval();
-        // 5. Point cloud segmentation
-        cloudSegmentation();
-        // 6. Publish all clouds
-        publishCloud();
-        // 7. Reset parameters for next iteration
-        resetParameters();
     }
 
     void findStartEndAngle(){
@@ -486,18 +477,3 @@ public:
         }
     }
 };
-
-
-
-
-int main(int argc, char** argv){
-
-    ros::init(argc, argv, "lego_loam");
-    
-    ImageProjection IP;
-
-    ROS_INFO("\033[1;32m---->\033[0m Image Projection Started.");
-
-    ros::spin();
-    return 0;
-}
