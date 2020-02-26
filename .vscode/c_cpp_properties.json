@@ -3,7 +3,7 @@
         {
             "name": "Linux",
             "includePath": [
-                "${workspaceFolder}/**",
+                "${/home/lizheng/Documents/LeGO-LOAM}/**",
                 "/home/lizheng/Documents/LeGO-LOAM/LeGO-LOAM/include",
                 "/home/lizheng/Documents/LeGO-LOAM/LeGO-LOAM/src"
             ],
