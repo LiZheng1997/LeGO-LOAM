@@ -3,7 +3,11 @@
 #include "featureAssociation.h"
 #include "mapOptmization.h"
 #include "transformFusion.h"
+#include <chrono>
 
+#include <rosbag/bag.h>
+#include <rosbag/view.h>
+#include <rosgraph_msgs/Clock.h>
 
 class Main(){
 
@@ -30,23 +34,14 @@ class Main(){
         // pcl::PointCloud<PointType>::Ptr _global_mapKey_framesDS;//"/laser_cloud_surround"
         // pcl::PointCloud<PointType>::Ptr _cloud_key_poses3D;///key_pose_origin
 
-        ImageProjection IP; //initiate a ImageProjection instance
-        FeatureAssociation FA;//initiate a FeatureAssociation Instance
-        MapOptimization MO;//initiate a MapOptimization instance
-        TransformFusion TF;//initiate a TransformFusion instance
-
-    void run(){
-        imageProjectionM();
-        featureAssociationM();
-        mapOptimizationM();
-        transformFusion();
-    }
-
     int imageProjectionM(){
 
+        ImageProjection IP(nh); //initiate a ImageProjection instance
         *_laser_cloudIn  = IP->laserCloudIn; //original point cloud data from ROS message
+        ROS_INFO("\033[1;32m---->\033[0m Image Projection Started.");
 
         if (*_laser_cloudIn != nullptr){
+
             // 2. Start and end angle of a scan
             IP.findStartEndAngle();
             // 3. Range image projection
@@ -72,6 +67,8 @@ class Main(){
     }
     
     int featureAssociationM(){
+
+        FeatureAssociation FA(nh);//initiate a FeatureAssociation Instance
 
         if (*_segmented_cloud != nullptr){
             FA.cloudHeader = _segmented_cloud->header;
@@ -104,6 +101,7 @@ class Main(){
             return ;
         }
 
+        ROS_INFO("\033[1;32m---->\033[0m Feature Association Started.");
         FA.runFeatureAssociation();
         *_laser_cloud_corner_last = FA.laserCloudCornerLast;
         *_laser_loud_surf_last = FA.laserCloudSurfLast;
@@ -113,6 +111,8 @@ class Main(){
     }
 
     int mapOptimizationM(){
+
+        MapOptimization MO(nh);//initiate a MapOptimization instance
 
         if(*_laser_cloud_corner_last != nullptr){
             MO.timeLaserCloudCornerLast = _laser_cloud_corner_last->header.stamp.toSec();
@@ -161,9 +161,10 @@ class Main(){
             return ;
         }
 
+        ROS_INFO("\033[1;32m---->\033[0m Map Optimization Started.");
         std::thread loopthread(&mapOptimization::loopClosureThread, &MO);
         std::thread visualizeMapThread(&mapOptimization::visualizeGlobalMapThread, &MO);
-
+        
         MO.run();
         _odom_aftMapped = MO.odomAftMapped;
         // *_global_mapKey_framesDS = MO.globalMapKeyFramesDS;
@@ -173,7 +174,10 @@ class Main(){
         return 0;
     };
 
-    int transformFusion(){
+    int transformFusionM(){
+
+        TransformFusion TF(nh);//initiate a TransformFusion instance
+        ROS_INFO("\033[1;32m---->\033[0m Transform Fusion Started.");
 
         if (_laser_odometry != NULL) {
             TF.currentHeader = _laser_odometry->header;
@@ -239,19 +243,96 @@ class Main(){
             return 0;
         }
     }
+
+    void run(){
+        imageProjectionM();
+        featureAssociationM();
+        mapOptimizationM();
+        transformFusionM();
+    }
 };
+
+
     int main(int argc, char** argv){
 
         ros::init(argc, argv, "lego_loam");
+        Main _m;
 
-        ROS_INFO("\033[1;32m---->\033[0m Map Optimization Started.");
+        ros::NodeHandle nh("~");
+        std::string rosbag;
+        std::string imu_topic;
+        std::string lidar_topic;
 
+        nh.getParam("rosbag", rosbag);
+        nh.getParam("imu_topic", imu_topic);
+        nh.getParam("lidar_topic", lidar_topic);
+
+        rosbag::Bag bag;
+
+        if (!rosbag.empty()) {
+            try {
+            bag.open(rosbag, rosbag::bagmode::Read);
+            use_rosbag = true;
+            } catch (std::exception& ex) {
+            ROS_FATAL("Unable to open rosbag [%s]", rosbag.c_str());
+            return 1;
+            }
+        }
+
+        ROS_INFO("\033[1;32m---->\033[0m LeGO-LOAM Started.");
+
+        //set parameters for reading data from rosbag
+        ROS_INFO("ROSBAG");
+        std::vector<std::string> topics;
+        topics.push_back(imu_topic);
+        topics.push_back(lidar_topic);
+
+        rosbag::View view(bag, rosbag::TopicQuery(topics));
+
+        auto start_real_time = std::chrono::high_resolution_clock::now();
+        auto start_sim_time = view.getBeginTime();
+
+        auto prev_real_time = start_real_time;
+        auto prev_sim_time = start_sim_time;
+
+        auto clock_publisher = nh.advertise<rosgraph_msgs::Clock>("/clock",1);
+
+        for(const rosbag::MessageInstance& m: view)
+        {
+            const sensor_msgs::PointCloud2ConstPtr &cloud = m.instantiate<sensor_msgs::PointCloud2>(); 
+            if (cloud != NULL){
+                IP.cloudHandler(cloud);
+                //ROS_INFO("cloud");
+            }
+
+            rosgraph_msgs::Clock clock_msg;
+            clock_msg.clock = m.getTime();
+            clock_publisher.publish( clock_msg );
+
+            auto real_time = std::chrono::high_resolution_clock::now();
+            if( real_time - prev_real_time > std::chrono::seconds(5) )
+            {
+                auto sim_time = m.getTime();
+                auto delta_real = std::chrono::duration_cast<std::chrono::milliseconds>(real_time-prev_real_time).count()*0.001;
+                auto delta_sim = (sim_time - prev_sim_time).toSec();
+                ROS_INFO("Processing the rosbag at %.1fX speed.", delta_sim / delta_real);
+                prev_sim_time = sim_time;
+                prev_real_time = real_time;
+            }
+            ros::spinOnce();
+        }
+        bag.close();
+
+        auto real_time = std::chrono::high_resolution_clock::now();
+        auto delta_real = std::chrono::duration_cast<std::chrono::milliseconds>(real_time-start_real_time).count()*0.001;
+        auto delta_sim = (view.getEndTime() - start_sim_time).toSec();
+        ROS_INFO("Entire rosbag processed at %.1fX speed", delta_sim / delta_real);
+        
         ros::Rate rate(200);
         while (ros::ok())
         {
             ros::spinOnce();
-            Main m;
-            m.run();
+            _m.run();
             rate.sleep();
         }
 
