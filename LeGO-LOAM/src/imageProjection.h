@@ -1,7 +1,7 @@
 #ifndef IMAGEPROJECTION_H
 #define IMAGEPROJECTION_H
 
-#include "utility.h"
+#include "lego_loam/utility.h"
 
 class ImageProjection{
 
@@ -11,7 +11,7 @@ class ImageProjection{
 
         ~ImageProjection() = default;
         void cloudHandler(const sensor_msgs::PointCloud2ConstPtr &laserCloudMsg);
-        
+
     public:
         void allocateMemory();
         void resetParameters();

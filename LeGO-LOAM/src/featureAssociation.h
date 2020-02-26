@@ -1,7 +1,7 @@
 #ifndef FEATUREASSOCIATION_H
 #define FEATUREASSOCIATION_H
 
-#include "utility.h"
+#include "lego_loam/utility.h"
 
 class FeatureAssociation{
 

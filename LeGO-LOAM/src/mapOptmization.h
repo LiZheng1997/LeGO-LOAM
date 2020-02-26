@@ -1,7 +1,7 @@
 #ifndef MAPOPTIMIZATION_H
 #define MAPOPTIMIZATION_H
 
-#include "utility.h"
+#include "lego_loam/utility.h"
 
 #include <gtsam/geometry/Rot3.h>
 #include <gtsam/geometry/Pose3.h>
