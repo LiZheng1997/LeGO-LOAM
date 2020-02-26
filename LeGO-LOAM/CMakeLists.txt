@@ -45,12 +45,20 @@ link_directories(
 	${GTSAM_LIBRARY_DIRS}
 )
 
-add_executable(lego_loam
-    src/imageProjection.cpp
-    src/featureAssociation.cpp
-    src/mapOptmization.cpp
-    src/transformFusion.cpp
-    src/main.cpp)
+add_executable(imageProjection src/imageProjection.cpp)
+add_dependencies(imageProjection ${catkin_EXPORTED_TARGETS} cloud_msgs_gencpp)
+target_link_libraries(imageProjection ${catkin_LIBRARIES} ${PCL_LIBRARIES} ${OpenCV_LIBRARIES})
 
-add_dependencies(lego_loam ${catkin_EXPORTED_TARGETS} cloud_msgs_gencpp)
-target_link_libraries(lego_loam ${catkin_LIBRARIES} ${PCL_LIBRARIES} gtsam)
+add_executable(featureAssociation src/featureAssociation.cpp)
+add_dependencies(featureAssociation ${catkin_EXPORTED_TARGETS} cloud_msgs_gencpp)
+target_link_libraries(featureAssociation ${catkin_LIBRARIES} ${PCL_LIBRARIES} ${OpenCV_LIBRARIES})
+
+add_executable(mapOptmization src/mapOptmization.cpp)
+target_link_libraries(mapOptmization ${catkin_LIBRARIES} ${PCL_LIBRARIES} ${OpenCV_LIBRARIES} gtsam)
+
+add_executable(transformFusion src/transformFusion.cpp)
+target_link_libraries(transformFusion ${catkin_LIBRARIES} ${PCL_LIBRARIES} ${OpenCV_LIBRARIES})
+
+add_executable(main src/main.cpp)
+add_dependencies(main ${catkin_EXPORTED_TARGETS} cloud_msgs_gencpp)
+target_link_libraries(main ${catkin_LIBRARIES} ${PCL_LIBRARIES} ${OpenCV_LIBRARIES})
