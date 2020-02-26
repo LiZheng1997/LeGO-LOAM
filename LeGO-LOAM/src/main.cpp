@@ -37,7 +37,7 @@ class Main(){
     int imageProjectionM(){
 
         ImageProjection IP(nh); //initiate a ImageProjection instance
-        *_laser_cloudIn  = IP->laserCloudIn; //original point cloud data from ROS message
+        *_laser_cloudIn  = IP.laserCloudIn; //original point cloud data from ROS message
         ROS_INFO("\033[1;32m---->\033[0m Image Projection Started.");
 
         if (*_laser_cloudIn != nullptr){
