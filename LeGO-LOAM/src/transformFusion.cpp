@@ -30,40 +30,9 @@
 //   J. Zhang and S. Singh. LOAM: Lidar Odometry and Mapping in Real-time.
 //     Robotics: Science and Systems Conference (RSS). Berkeley, CA, July 2014.
 
-#include "utility.h"
+#include "transformFusion.h"
 
-class TransformFusion{
-
-private:
-
-    ros::NodeHandle nh;
-
-    ros::Publisher pubLaserOdometry2;
-    ros::Subscriber subLaserOdometry;
-    ros::Subscriber subOdomAftMapped;
-  
-
-    nav_msgs::Odometry laserOdometry2;
-    tf::StampedTransform laserOdometryTrans2;
-    tf::TransformBroadcaster tfBroadcaster2;
-
-    tf::StampedTransform map_2_camera_init_Trans;
-    tf::TransformBroadcaster tfBroadcasterMap2CameraInit;
-
-    tf::StampedTransform camera_2_base_link_Trans;
-    tf::TransformBroadcaster tfBroadcasterCamera2Baselink;
-
-    float transformSum[6];
-    float transformIncre[6];
-    float transformMapped[6];
-    float transformBefMapped[6];
-    float transformAftMapped[6];
-
-    std_msgs::Header currentHeader;
-
-public:
-
-    TransformFusion(){
+TransformFusion::TransformFusion(ros::NodeHandle& node) : nh(node) {
 
         pubLaserOdometry2 = nh.advertise<nav_msgs::Odometry> ("/integrated_to_init", 5);
         subLaserOdometry = nh.subscribe<nav_msgs::Odometry>("/laser_odom_to_init", 5, &TransformFusion::laserOdometryHandler, this);
