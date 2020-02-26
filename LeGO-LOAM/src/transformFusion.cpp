@@ -207,17 +207,3 @@ TransformFusion::TransformFusion(ros::NodeHandle& node) : nh(node) {
         transformBefMapped[5] = odomAftMapped->twist.twist.linear.z;
     }
 };
-
-
-int main(int argc, char** argv)
-{
-    ros::init(argc, argv, "lego_loam");
-    
-    TransformFusion TFusion;
-
-    ROS_INFO("\033[1;32m---->\033[0m Transform Fusion Started.");
-
-    ros::spin();
-
-    return 0;
-}

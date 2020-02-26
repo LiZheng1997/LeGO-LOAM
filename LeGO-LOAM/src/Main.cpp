@@ -2,6 +2,7 @@
 #include "imageProjection.h"
 #include "featureAssociation.h"
 #include "mapOptimization.h"
+#include "transformFusion.h"
 
 
 class Main(){
@@ -23,41 +24,16 @@ class Main(){
         pcl::PointCloud<PointType>::Ptr _laser_cloud_corner_last;//"/laser_cloud_corner_last"
         pcl::PointCloud<PointType>::Ptr _laser_loud_surf_last;//"/laser_cloud_surf_last"
         pcl::PointCloud<PointType>::Ptr _outlier_cloud_last;//"/outlier_cloud_last"
-        nav_msgs::Odometry _laser_dometry; //"/laser_odom_to_init"
+        nav_msgs::Odometry _laser_odometry; //"/laser_odom_to_init"
 
         nav_msgs::Odometry _odom_aftMapped;//"/aft_mapped_to_init",
         pcl::PointCloud<PointType>::Ptr _global_mapKey_framesDS;//"/laser_cloud_surround"
         pcl::PointCloud<PointType>::Ptr _cloud_key_poses3D;///key_pose_origin
 
-
-
-
         ImageProjection IP; //initiate a ImageProjection instance
         FeatureAssociation FA;//initiate a FeatureAssociation Instance
         MapOptimization MO;//initiate a MapOptimization instance
-
-
-    int main(int argc, char** argv){
-
-        ros::init(argc, argv, "lego_loam");
-
-        ROS_INFO("\033[1;32m---->\033[0m Map Optimization Started.");
-
-        imageProjectionM();
-        featureAssociationM();
-
-        ros::Rate rate(200);
-        while (ros::ok())
-        {
-            ros::spinOnce();
-
-            MO.run();
-
-            rate.sleep();
-        }
-
-        return 0;
-    }; 
+        TransformFusion TF;//initiate a TransformFusion instance
 
     void imageProjectionM(){
 
@@ -81,7 +57,7 @@ class Main(){
         *_segmented_cloud = IP.segmentedCloud;
 
         _seg_msg = IP.segMsg;
-    };
+    }
     
     void featureAssociationM(){
 
@@ -113,7 +89,7 @@ class Main(){
         *_outlier_cloud_last = FA.outlierCloud;
         _laser_odometry = FA.laserOdometry;
 
-    };
+    }
 
     void mapOptimizationM(){
 
@@ -138,7 +114,7 @@ class Main(){
             newLaserCloudOutlierLast = true;
         }
 
-        if(_laser_dometry != NULL){
+        if(_laser_odometry != NULL){
             MO.timeLaserOdometry = _laser_odometry->header.stamp.toSec();
             double roll, pitch, yaw;
             geometry_msgs::Quaternion geoQuat = _laser_odometry->pose.pose.orientation;
@@ -156,15 +132,90 @@ class Main(){
         _odom_aftMapped = MO.odomAftMapped;
         *_global_mapKey_framesDS = MO.globalMapKeyFramesDS;
         *_cloud_key_poses3D = MO.cloudKeyPoses3D;
-    }
+    };
 
     void transformFusion(){
 
-        if () {
-            
+        if (_laser_odometry != NULL) {
+            TF.currentHeader = _laser_odometry->header;
+
+            double roll, pitch, yaw;
+            geometry_msgs::Quaternion geoQuat = _laser_odometry->pose.pose.orientation;
+            tf::Matrix3x3(tf::Quaternion(geoQuat.z, -geoQuat.x, -geoQuat.y, geoQuat.w)).getRPY(roll, pitch, yaw);
+
+            TF.transformSum[0] = -pitch;
+            TF.transformSum[1] = -yaw;
+            TF.transformSum[2] = roll;
+
+            TF.transformSum[3] = _laser_odometry->pose.pose.position.x;
+            TF.transformSum[4] = _laser_odometry->pose.pose.position.y;
+            TF.transformSum[5] = _laser_odometry->pose.pose.position.z;
+
+            TF.transformAssociateToMap();
+
+            geoQuat = tf::createQuaternionMsgFromRollPitchYaw
+                    (transformMapped[2], -transformMapped[0], -transformMapped[1]);
+
+            TF.laserOdometry2.header.stamp = _laser_odometry->header.stamp;
+            TF.laserOdometry2.pose.pose.orientation.x = -geoQuat.y;
+            TF.laserOdometry2.pose.pose.orientation.y = -geoQuat.z;
+            TF.laserOdometry2.pose.pose.orientation.z = geoQuat.x;
+            TF.laserOdometry2.pose.pose.orientation.w = geoQuat.w;
+            TF.laserOdometry2.pose.pose.position.x = transformMapped[3];
+            TF.laserOdometry2.pose.pose.position.y = transformMapped[4];
+            TF.laserOdometry2.pose.pose.position.z = transformMapped[5];
+            TF.pubLaserOdometry2.publish(TF.laserOdometry2);
+
+            TF.laserOdometryTrans2.stamp_ = _laser_odometry->header.stamp;
+            TF.laserOdometryTrans2.setRotation(tf::Quaternion(-geoQuat.y, -geoQuat.z, geoQuat.x, geoQuat.w));
+            TF.laserOdometryTrans2.setOrigin(tf::Vector3(transformMapped[3], transformMapped[4], transformMapped[5]));
+            tfBroadcaster2.sendTransform(TF.laserOdometryTrans2);
+        }
+
+        if (_odom_aftMapped != NULL){
+            double roll, pitch, yaw;
+            geometry_msgs::Quaternion geoQuat = _odom_aftMapped->pose.pose.orientation;
+            tf::Matrix3x3(tf::Quaternion(geoQuat.z, -geoQuat.x, -geoQuat.y, geoQuat.w)).getRPY(roll, pitch, yaw);
+
+            TF.transformAftMapped[0] = -pitch;
+            TF.transformAftMapped[1] = -yaw;
+            TF.transformAftMapped[2] = roll;
+
+            TF.transformAftMapped[3] = _odom_aftMapped->pose.pose.position.x;
+            TF.transformAftMapped[4] = _odom_aftMapped->pose.pose.position.y;
+            TF.transformAftMapped[5] = _odom_aftMapped->pose.pose.position.z;
+
+            TF.transformBefMapped[0] = _odom_aftMapped->twist.twist.angular.x;
+            TF.transformBefMapped[1] = _odom_aftMapped->twist.twist.angular.y;
+            TF.transformBefMapped[2] = _odom_aftMapped->twist.twist.angular.z;
+
+            TF.transformBefMapped[3] = _odom_aftMapped->twist.twist.linear.x;
+            TF.transformBefMapped[4] = _odom_aftMapped->twist.twist.linear.y;
+            TF.transformBefMapped[5] = _odom_aftMapped->twist.twist.linear.z;
         }
     }
+};
+    int main(int argc, char** argv){
 
+        ros::init(argc, argv, "lego_loam");
+
+        ROS_INFO("\033[1;32m---->\033[0m Map Optimization Started.");
+
+        ros::Rate rate(200);
+        while (ros::ok())
+        {
+            ros::spinOnce();
+
+            imageProjectionM();
+            featureAssociationM();
+            mapOptimizationM();
+            transformFusion();
+
+            rate.sleep();
+        }
+
+        return 0;
+    } 
 
     //     if (FA.newSegmentedCloud && FA.newSegmentedCloudInfo && FA.newOutlierCloud &&
     //         std::abs(FA.timeNewSegmentedCloudInfo - FA.timeNewSegmentedCloud) < 0.05 &&
@@ -206,5 +257,3 @@ class Main(){
     //     FA.publishCloudsLast(); // cloud to mapOptimization
     
     // }
-
-};
