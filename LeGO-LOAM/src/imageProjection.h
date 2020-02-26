@@ -11,19 +11,18 @@ class ImageProjection{
 
         ~ImageProjection() = default;
         void cloudHandler(const sensor_msgs::PointCloud2ConstPtr &laserCloudMsg);
-
-
-    private:
-
+    public:
         void allocateMemory();
         void resetParameters();
-        void copyPointCloud();
+        void copyPointCloud(const sensor_msgs::PointCloud2ConstPtr& laserCloudMsg);
         void findStartEndAngle();
         void projectPointCloud();
         void groundRemoval();
         void cloudSegmentation();
         void labelComponents(int row, int col);
         void publishClouds();
+
+    private:
 
         ros::NodeHandle nh;
 
