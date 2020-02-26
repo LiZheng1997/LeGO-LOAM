@@ -32,7 +32,6 @@
 //   T. Shan and B. Englot. LeGO-LOAM: Lightweight and Ground-Optimized Lidar Odometry and Mapping on Variable Terrain
 //      IEEE/RSJ International Conference on Intelligent Robots and Systems (IROS). October 2018.
 
-#include "utility.h"
 #include "featureAssociation.h"
 
 
@@ -1421,17 +1420,17 @@
         laserCloudCornerLastNum = laserCloudCornerLast->points.size();
         laserCloudSurfLastNum = laserCloudSurfLast->points.size();
 
-        sensor_msgs::PointCloud2 laserCloudCornerLast2;
-        pcl::toROSMsg(*laserCloudCornerLast, laserCloudCornerLast2);
-        laserCloudCornerLast2.header.stamp = cloudHeader.stamp;
-        laserCloudCornerLast2.header.frame_id = "/camera";
-        pubLaserCloudCornerLast.publish(laserCloudCornerLast2);
+        // sensor_msgs::PointCloud2 laserCloudCornerLast2;
+        // pcl::toROSMsg(*laserCloudCornerLast, laserCloudCornerLast2);
+        // laserCloudCornerLast2.header.stamp = cloudHeader.stamp;
+        // laserCloudCornerLast2.header.frame_id = "/camera";
+        // pubLaserCloudCornerLast.publish(laserCloudCornerLast2);
 
-        sensor_msgs::PointCloud2 laserCloudSurfLast2;
-        pcl::toROSMsg(*laserCloudSurfLast, laserCloudSurfLast2);
-        laserCloudSurfLast2.header.stamp = cloudHeader.stamp;
-        laserCloudSurfLast2.header.frame_id = "/camera";
-        pubLaserCloudSurfLast.publish(laserCloudSurfLast2);
+        // sensor_msgs::PointCloud2 laserCloudSurfLast2;
+        // pcl::toROSMsg(*laserCloudSurfLast, laserCloudSurfLast2);
+        // laserCloudSurfLast2.header.stamp = cloudHeader.stamp;
+        // laserCloudSurfLast2.header.frame_id = "/camera";
+        // pubLaserCloudSurfLast.publish(laserCloudSurfLast2);
 
         transformSum[0] += imuPitchStart;
         transformSum[2] += imuRollStart;
@@ -1538,7 +1537,7 @@
         laserOdometry.pose.pose.position.x = transformSum[3];
         laserOdometry.pose.pose.position.y = transformSum[4];
         laserOdometry.pose.pose.position.z = transformSum[5];
-        pubLaserOdometry.publish(laserOdometry);
+        // pubLaserOdometry.publish(laserOdometry);
 
         laserOdometryTrans.stamp_ = cloudHeader.stamp;
         laserOdometryTrans.setRotation(tf::Quaternion(-geoQuat.y, -geoQuat.z, geoQuat.x, geoQuat.w));
@@ -1597,28 +1596,68 @@
             frameCount = 0;
 
             adjustOutlierCloud();
-            sensor_msgs::PointCloud2 outlierCloudLast2;
-            pcl::toROSMsg(*outlierCloud, outlierCloudLast2);
-            outlierCloudLast2.header.stamp = cloudHeader.stamp;
-            outlierCloudLast2.header.frame_id = "/camera";
-            pubOutlierCloudLast.publish(outlierCloudLast2);
+            // sensor_msgs::PointCloud2 outlierCloudLast2;
+            // pcl::toROSMsg(*outlierCloud, outlierCloudLast2);
+            // outlierCloudLast2.header.stamp = cloudHeader.stamp;
+            // outlierCloudLast2.header.frame_id = "/camera";
+            // pubOutlierCloudLast.publish(outlierCloudLast2);
 
-            sensor_msgs::PointCloud2 laserCloudCornerLast2;
-            pcl::toROSMsg(*laserCloudCornerLast, laserCloudCornerLast2);
-            laserCloudCornerLast2.header.stamp = cloudHeader.stamp;
-            laserCloudCornerLast2.header.frame_id = "/camera";
-            pubLaserCloudCornerLast.publish(laserCloudCornerLast2);
+            // sensor_msgs::PointCloud2 laserCloudCornerLast2;
+            // pcl::toROSMsg(*laserCloudCornerLast, laserCloudCornerLast2);
+            // laserCloudCornerLast2.header.stamp = cloudHeader.stamp;
+            // laserCloudCornerLast2.header.frame_id = "/camera";
+            // pubLaserCloudCornerLast.publish(laserCloudCornerLast2);
 
-            sensor_msgs::PointCloud2 laserCloudSurfLast2;
-            pcl::toROSMsg(*laserCloudSurfLast, laserCloudSurfLast2);
-            laserCloudSurfLast2.header.stamp = cloudHeader.stamp;
-            laserCloudSurfLast2.header.frame_id = "/camera";
-            pubLaserCloudSurfLast.publish(laserCloudSurfLast2);
+            // sensor_msgs::PointCloud2 laserCloudSurfLast2;
+            // pcl::toROSMsg(*laserCloudSurfLast, laserCloudSurfLast2);
+            // laserCloudSurfLast2.header.stamp = cloudHeader.stamp;
+            // laserCloudSurfLast2.header.frame_id = "/camera";
+            // pubLaserCloudSurfLast.publish(laserCloudSurfLast2);
         }
     }
 
     void runFeatureAssociation()
     {
 
-        
+        if (newSegmentedCloud && newSegmentedCloudInfo && newOutlierCloud &&
+            std::abs(timeNewSegmentedCloudInfo - timeNewSegmentedCloud) < 0.05 &&
+            std::abs(timeNewOutlierCloud - timeNewSegmentedCloud) < 0.05){
+
+            newSegmentedCloud = false;
+            newSegmentedCloudInfo = false;
+            newOutlierCloud = false;
+        }else{
+            return;
+        }
+        /**
+        	1. Feature Extraction
+        */
+        adjustDistortion();
+
+        calculateSmoothness();
+
+        markOccludedPoints();
+
+        extractFeatures();
+
+        publishCloud(); // cloud for visualization
+	
+        /**
+		2. Feature Association
+        */
+        if (!systemInitedLM) {
+            checkSystemInitialization();
+            return;
+        }
+
+        updateInitialGuess();
+
+        updateTransformation();
+
+        integrateTransformation();
+
+        publishOdometry();
+
+        publishCloudsLast(); // cloud to mapOptimization
+    }
 };
