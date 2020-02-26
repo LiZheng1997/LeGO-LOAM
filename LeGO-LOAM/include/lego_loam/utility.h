@@ -56,12 +56,12 @@ extern const string imuTopic = "/imu/data";
 // Save pcd
 extern const string fileDirectory = "/tmp/";
 
-// VLP-16  //配置激光雷达基本参数
+// VLP-16
 extern const int N_SCAN = 16;
 extern const int Horizon_SCAN = 1800;
 extern const float ang_res_x = 0.2;
 extern const float ang_res_y = 2.0;
-extern const float ang_bottom = 15.0+0.1; //为啥加上一个0.1
+extern const float ang_bottom = 15.0+0.1;
 extern const int groundScanInd = 7;
 
 // HDL-32E
@@ -93,26 +93,25 @@ extern const int groundScanInd = 7;
 extern const bool loopClosureEnableFlag = false;
 extern const double mappingProcessInterval = 0.3;
 
-extern const float scanPeriod = 0.1; //扫描时间
+extern const float scanPeriod = 0.1;
 extern const int systemDelay = 0;
 extern const int imuQueLength = 200;
 
 extern const float sensorMountAngle = 0.0;
-extern const float segmentTheta = 60.0/180.0*M_PI; // decrese this value may improve accuracy //这个就是论文中提到的用来分割的阈值大小。
+extern const float segmentTheta = 60.0/180.0*M_PI; // decrese this value may improve accuracy
 extern const int segmentValidPointNum = 5;
 extern const int segmentValidLineNum = 3;
-extern const float segmentAlphaX = ang_res_x / 180.0 * M_PI; //计算弧度
+extern const float segmentAlphaX = ang_res_x / 180.0 * M_PI;
 extern const float segmentAlphaY = ang_res_y / 180.0 * M_PI;
 
 
 extern const int edgeFeatureNum = 2;
 extern const int surfFeatureNum = 4;
-extern const int sectionsTotal = 6; //切分成6个sections的投影
+extern const int sectionsTotal = 6;
 extern const float edgeThreshold = 0.1;
 extern const float surfThreshold = 0.1;
 extern const float nearestFeatureSearchSqDist = 25;
 
-//构图和取关键帧和历史帧参数，定义keyframe的搜寻范围。
 // Mapping Params
 extern const float surroundingKeyframeSearchRadius = 50.0; // key frame that is within n meters from current pose will be considerd for scan-to-map optimization (when loop closure disabled)
 extern const int   surroundingKeyframeSearchNum = 50; // submap size (when loop closure enabled)
