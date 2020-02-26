@@ -11,6 +11,7 @@ class ImageProjection{
 
         ~ImageProjection() = default;
         void cloudHandler(const sensor_msgs::PointCloud2ConstPtr &laserCloudMsg);
+        
     public:
         void allocateMemory();
         void resetParameters();

@@ -26,7 +26,6 @@
 // ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 // POSSIBILITY OF SUCH DAMAGE.
 
-#include "utility.h"
 #include "imageProjection.h"
 
 ImageProjection::ImageProjection(ros::NodeHandle& nh)
@@ -38,10 +37,10 @@ ImageProjection::ImageProjection(ros::NodeHandle& nh)
     pubFullInfoCloud = nh.advertise<sensor_msgs::PointCloud2> ("/full_cloud_info", 1);
 
     pubGroundCloud = nh.advertise<sensor_msgs::PointCloud2> ("/ground_cloud", 1);
-    pubSegmentedCloud = nh.advertise<sensor_msgs::PointCloud2> ("/segmented_cloud", 1);
+    // pubSegmentedCloud = nh.advertise<sensor_msgs::PointCloud2> ("/segmented_cloud", 1);
     pubSegmentedCloudPure = nh.advertise<sensor_msgs::PointCloud2> ("/segmented_cloud_pure", 1);
-    pubSegmentedCloudInfo = nh.advertise<cloud_msgs::cloud_info> ("/segmented_cloud_info", 1);
-    pubOutlierCloud = nh.advertise<sensor_msgs::PointCloud2> ("/outlier_cloud", 1);
+    // pubSegmentedCloudInfo = nh.advertise<cloud_msgs::cloud_info> ("/segmented_cloud_info", 1);
+    // pubOutlierCloud = nh.advertise<sensor_msgs::PointCloud2> ("/outlier_cloud", 1);
 
     nanPoint.x = std::numeric_limits<float>::quiet_NaN();
     nanPoint.y = std::numeric_limits<float>::quiet_NaN();
@@ -386,19 +385,19 @@ void labelComponents(int row, int col){
 void publishCloud(){
     // 1. Publish Seg Cloud Info
     segMsg.header = cloudHeader;
-    pubSegmentedCloudInfo.publish(segMsg);
+    // pubSegmentedCloudInfo.publish(segMsg);
     // 2. Publish clouds
     sensor_msgs::PointCloud2 laserCloudTemp;
 
-    pcl::toROSMsg(*outlierCloud, laserCloudTemp);
-    laserCloudTemp.header.stamp = cloudHeader.stamp;
-    laserCloudTemp.header.frame_id = "base_link";
-    pubOutlierCloud.publish(laserCloudTemp);
+    // pcl::toROSMsg(*outlierCloud, laserCloudTemp);
+    // laserCloudTemp.header.stamp = cloudHeader.stamp;
+    // laserCloudTemp.header.frame_id = "base_link";
+    // pubOutlierCloud.publish(laserCloudTemp);
     // segmented cloud with ground
-    pcl::toROSMsg(*segmentedCloud, laserCloudTemp);
-    laserCloudTemp.header.stamp = cloudHeader.stamp;
-    laserCloudTemp.header.frame_id = "base_link";
-    pubSegmentedCloud.publish(laserCloudTemp);
+    // pcl::toROSMsg(*segmentedCloud, laserCloudTemp);
+    // laserCloudTemp.header.stamp = cloudHeader.stamp;
+    // laserCloudTemp.header.frame_id = "base_link";
+    // pubSegmentedCloud.publish(laserCloudTemp);
     // projected full cloud
     if (pubFullCloud.getNumSubscribers() != 0){
         pcl::toROSMsg(*fullCloud, laserCloudTemp);

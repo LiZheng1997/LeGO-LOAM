@@ -32,7 +32,7 @@
 //   T. Shan and B. Englot. LeGO-LOAM: Lightweight and Ground-Optimized Lidar Odometry and Mapping on Variable Terrain
 //      IEEE/RSJ International Conference on Intelligent Robots and Systems (IROS). October 2018.
 
-#include "mapOptimization.h"
+#include "mapOptmization.h"
 using namespace gtsam;
 
 MapOptimization::MapOptimization(ros::NodeHandle &node)
@@ -45,12 +45,12 @@ MapOptimization::MapOptimization(ros::NodeHandle &node)
 
         pubKeyPoses = nh.advertise<sensor_msgs::PointCloud2>("/key_pose_origin", 2);
         pubLaserCloudSurround = nh.advertise<sensor_msgs::PointCloud2>("/laser_cloud_surround", 2);
-        pubOdomAftMapped = nh.advertise<nav_msgs::Odometry> ("/aft_mapped_to_init", 5);
+        // pubOdomAftMapped = nh.advertise<nav_msgs::Odometry> ("/aft_mapped_to_init", 5);
 
-        subLaserCloudCornerLast = nh.subscribe<sensor_msgs::PointCloud2>("/laser_cloud_corner_last", 2, &mapOptimization::laserCloudCornerLastHandler, this);
-        subLaserCloudSurfLast = nh.subscribe<sensor_msgs::PointCloud2>("/laser_cloud_surf_last", 2, &mapOptimization::laserCloudSurfLastHandler, this);
-        subOutlierCloudLast = nh.subscribe<sensor_msgs::PointCloud2>("/outlier_cloud_last", 2, &mapOptimization::laserCloudOutlierLastHandler, this);
-        subLaserOdometry = nh.subscribe<nav_msgs::Odometry>("/laser_odom_to_init", 5, &mapOptimization::laserOdometryHandler, this);
+        // subLaserCloudCornerLast = nh.subscribe<sensor_msgs::PointCloud2>("/laser_cloud_corner_last", 2, &mapOptimization::laserCloudCornerLastHandler, this);
+        // subLaserCloudSurfLast = nh.subscribe<sensor_msgs::PointCloud2>("/laser_cloud_surf_last", 2, &mapOptimization::laserCloudSurfLastHandler, this);
+        // subOutlierCloudLast = nh.subscribe<sensor_msgs::PointCloud2>("/outlier_cloud_last", 2, &mapOptimization::laserCloudOutlierLastHandler, this);
+        // subLaserOdometry = nh.subscribe<nav_msgs::Odometry>("/laser_odom_to_init", 5, &mapOptimization::laserOdometryHandler, this);
         subImu = nh.subscribe<sensor_msgs::Imu> (imuTopic, 50, &mapOptimization::imuHandler, this);
 
         pubHistoryKeyFrames = nh.advertise<sensor_msgs::PointCloud2>("/history_cloud", 2);
@@ -416,40 +416,40 @@ MapOptimization::MapOptimization(ros::NodeHandle &node)
         return cloudOut;
     }
 
-    void laserCloudOutlierLastHandler(const sensor_msgs::PointCloud2ConstPtr& msg){
-        timeLaserCloudOutlierLast = msg->header.stamp.toSec();
-        laserCloudOutlierLast->clear();
-        pcl::fromROSMsg(*msg, *laserCloudOutlierLast);
-        newLaserCloudOutlierLast = true;
-    }
+    // void laserCloudOutlierLastHandler(const sensor_msgs::PointCloud2ConstPtr& msg){
+    //     timeLaserCloudOutlierLast = msg->header.stamp.toSec();
+    //     laserCloudOutlierLast->clear();
+    //     pcl::fromROSMsg(*msg, *laserCloudOutlierLast);
+    //     newLaserCloudOutlierLast = true;
+    // }
 
-    void laserCloudCornerLastHandler(const sensor_msgs::PointCloud2ConstPtr& msg){
-        timeLaserCloudCornerLast = msg->header.stamp.toSec();
-        laserCloudCornerLast->clear();
-        pcl::fromROSMsg(*msg, *laserCloudCornerLast);
-        newLaserCloudCornerLast = true;
-    }
+    // void laserCloudCornerLastHandler(const sensor_msgs::PointCloud2ConstPtr& msg){
+    //     timeLaserCloudCornerLast = msg->header.stamp.toSec();
+    //     laserCloudCornerLast->clear();
+    //     pcl::fromROSMsg(*msg, *laserCloudCornerLast);
+    //     newLaserCloudCornerLast = true;
+    // }
 
-    void laserCloudSurfLastHandler(const sensor_msgs::PointCloud2ConstPtr& msg){
-        timeLaserCloudSurfLast = msg->header.stamp.toSec();
-        laserCloudSurfLast->clear();
-        pcl::fromROSMsg(*msg, *laserCloudSurfLast);
-        newLaserCloudSurfLast = true;
-    }
+    // void laserCloudSurfLastHandler(const sensor_msgs::PointCloud2ConstPtr& msg){
+    //     timeLaserCloudSurfLast = msg->header.stamp.toSec();
+    //     laserCloudSurfLast->clear();
+    //     pcl::fromROSMsg(*msg, *laserCloudSurfLast);
+    //     newLaserCloudSurfLast = true;
+    // }
 
-    void laserOdometryHandler(const nav_msgs::Odometry::ConstPtr& laserOdometry){
-        timeLaserOdometry = laserOdometry->header.stamp.toSec();
-        double roll, pitch, yaw;
-        geometry_msgs::Quaternion geoQuat = laserOdometry->pose.pose.orientation;
-        tf::Matrix3x3(tf::Quaternion(geoQuat.z, -geoQuat.x, -geoQuat.y, geoQuat.w)).getRPY(roll, pitch, yaw);
-        transformSum[0] = -pitch;
-        transformSum[1] = -yaw;
-        transformSum[2] = roll;
-        transformSum[3] = laserOdometry->pose.pose.position.x;
-        transformSum[4] = laserOdometry->pose.pose.position.y;
-        transformSum[5] = laserOdometry->pose.pose.position.z;
-        newLaserOdometry = true;
-    }
+    // void laserOdometryHandler(const nav_msgs::Odometry::ConstPtr& laserOdometry){
+    //     timeLaserOdometry = laserOdometry->header.stamp.toSec();
+    //     double roll, pitch, yaw;
+    //     geometry_msgs::Quaternion geoQuat = laserOdometry->pose.pose.orientation;
+    //     tf::Matrix3x3(tf::Quaternion(geoQuat.z, -geoQuat.x, -geoQuat.y, geoQuat.w)).getRPY(roll, pitch, yaw);
+    //     transformSum[0] = -pitch;
+    //     transformSum[1] = -yaw;
+    //     transformSum[2] = roll;
+    //     transformSum[3] = laserOdometry->pose.pose.position.x;
+    //     transformSum[4] = laserOdometry->pose.pose.position.y;
+    //     transformSum[5] = laserOdometry->pose.pose.position.z;
+    //     newLaserOdometry = true;
+    // }
 
     void imuHandler(const sensor_msgs::Imu::ConstPtr& imuIn){
         double roll, pitch, yaw;
@@ -491,13 +491,13 @@ MapOptimization::MapOptimization(ros::NodeHandle &node)
 
     void publishKeyPosesAndFrames(){
 
-        // if (pubKeyPoses.getNumSubscribers() != 0){
-        //     sensor_msgs::PointCloud2 cloudMsgTemp;
-        //     pcl::toROSMsg(*cloudKeyPoses3D, cloudMsgTemp);
-        //     cloudMsgTemp.header.stamp = ros::Time().fromSec(timeLaserOdometry);
-        //     cloudMsgTemp.header.frame_id = "/camera_init";
-        //     pubKeyPoses.publish(cloudMsgTemp);
-        // }
+        if (pubKeyPoses.getNumSubscribers() != 0){
+            sensor_msgs::PointCloud2 cloudMsgTemp;
+            pcl::toROSMsg(*cloudKeyPoses3D, cloudMsgTemp);
+            cloudMsgTemp.header.stamp = ros::Time().fromSec(timeLaserOdometry);
+            cloudMsgTemp.header.frame_id = "/camera_init";
+            pubKeyPoses.publish(cloudMsgTemp);
+        }
 
         if (pubRecentKeyFrames.getNumSubscribers() != 0){
             sensor_msgs::PointCloud2 cloudMsgTemp;
@@ -574,16 +574,16 @@ MapOptimization::MapOptimization(ros::NodeHandle &node)
         downSizeFilterGlobalMapKeyFrames.setInputCloud(globalMapKeyFrames);
         downSizeFilterGlobalMapKeyFrames.filter(*globalMapKeyFramesDS);
  
-        // sensor_msgs::PointCloud2 cloudMsgTemp;
-        // pcl::toROSMsg(*globalMapKeyFramesDS, cloudMsgTemp);
-        // cloudMsgTemp.header.stamp = ros::Time().fromSec(timeLaserOdometry);
-        // cloudMsgTemp.header.frame_id = "/camera_init";
-        // pubLaserCloudSurround.publish(cloudMsgTemp);  
+        sensor_msgs::PointCloud2 cloudMsgTemp;
+        pcl::toROSMsg(*globalMapKeyFramesDS, cloudMsgTemp);
+        cloudMsgTemp.header.stamp = ros::Time().fromSec(timeLaserOdometry);
+        cloudMsgTemp.header.frame_id = "/camera_init";
+        pubLaserCloudSurround.publish(cloudMsgTemp);  
 
         globalMapKeyPoses->clear();
         globalMapKeyPosesDS->clear();
         globalMapKeyFrames->clear();
-        // globalMapKeyFramesDS->clear();     
+        globalMapKeyFramesDS->clear();     
     }
 
     void loopClosureThread(){
@@ -1308,31 +1308,3 @@ MapOptimization::MapOptimization(ros::NodeHandle &node)
         }
     }
 };
-
-
-int main(int argc, char** argv)
-{
-    ros::init(argc, argv, "lego_loam");
-
-    ROS_INFO("\033[1;32m---->\033[0m Map Optimization Started.");
-
-    mapOptimization MO;
-
-    std::thread loopthread(&mapOptimization::loopClosureThread, &MO);
-    std::thread visualizeMapThread(&mapOptimization::visualizeGlobalMapThread, &MO);
-
-    ros::Rate rate(200);
-    while (ros::ok())
-    {
-        ros::spinOnce();
-
-        MO.run();
-
-        rate.sleep();
-    }
-
-    loopthread.join();
-    visualizeMapThread.join();
-
-    return 0;
-}

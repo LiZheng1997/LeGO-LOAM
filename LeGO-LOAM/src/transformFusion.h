@@ -39,3 +39,5 @@ class TransformFusion{
         void laserOdometryHandler(const nav_msgs::Odometry::ConstPtr& laserOdometry);
         void odomAftMappedHandler(const nav_msgs::Odometry::ConstPtr& odomAftMapped);
 };
+
+#endif // TRANSFORMFUSION_H

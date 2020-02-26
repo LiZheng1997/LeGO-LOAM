@@ -1,7 +1,7 @@
 #include "utility.h"
 #include "imageProjection.h"
 #include "featureAssociation.h"
-#include "mapOptimization.h"
+#include "mapOptmization.h"
 #include "transformFusion.h"
 
 
@@ -27,39 +27,51 @@ class Main(){
         nav_msgs::Odometry _laser_odometry; //"/laser_odom_to_init"
 
         nav_msgs::Odometry _odom_aftMapped;//"/aft_mapped_to_init",
-        pcl::PointCloud<PointType>::Ptr _global_mapKey_framesDS;//"/laser_cloud_surround"
-        pcl::PointCloud<PointType>::Ptr _cloud_key_poses3D;///key_pose_origin
+        // pcl::PointCloud<PointType>::Ptr _global_mapKey_framesDS;//"/laser_cloud_surround"
+        // pcl::PointCloud<PointType>::Ptr _cloud_key_poses3D;///key_pose_origin
 
         ImageProjection IP; //initiate a ImageProjection instance
         FeatureAssociation FA;//initiate a FeatureAssociation Instance
         MapOptimization MO;//initiate a MapOptimization instance
         TransformFusion TF;//initiate a TransformFusion instance
 
-    void imageProjectionM(){
+    void run(){
+        imageProjectionM();
+        featureAssociationM();
+        mapOptimizationM();
+        transformFusion();
+    }
+
+    int imageProjectionM(){
 
         *_laser_cloudIn  = IP->laserCloudIn; //original point cloud data from ROS message
 
-        // 2. Start and end angle of a scan
-        IP.findStartEndAngle();
-        // 3. Range image projection
-        IP.projectPointCloud();
-        // 4. Mark ground points
-        IP.groundRemoval();
-        // 5. Point cloud segmentation
-        IP.cloudSegmentation();
-        // 6. Publish all clouds
-        IP.publishCloud();
-        // 7. Reset parameters for next iteration
-        IP.resetParameters();
+        if (*_laser_cloudIn != nullptr){
+            // 2. Start and end angle of a scan
+            IP.findStartEndAngle();
+            // 3. Range image projection
+            IP.projectPointCloud();
+            // 4. Mark ground points
+            IP.groundRemoval();
+            // 5. Point cloud segmentation
+            IP.cloudSegmentation();
+            // 6. Publish all clouds
+            IP.publishCloud();
+            // 7. Reset parameters for next iteration
+            IP.resetParameters();
 
-        *_outlier_cloud = IP.outlierCloud;
+            *_outlier_cloud = IP.outlierCloud;
 
-        *_segmented_cloud = IP.segmentedCloud;
+            *_segmented_cloud = IP.segmentedCloud;
 
-        _seg_msg = IP.segMsg;
+            _seg_msg = IP.segMsg;
+        }
+        else{
+            return 0;
+        }
     }
     
-    void featureAssociationM(){
+    int featureAssociationM(){
 
         if (*_segmented_cloud != nullptr){
             FA.cloudHeader = _segmented_cloud->header;
@@ -69,11 +81,17 @@ class Main(){
             FA.segmentedCloud = *_segmented_cloud;
             FA.newSegmentedCloud = true;
         }
+        else{
+            return ;
+        }
 
         if (_seg_msg != NULL){
             FA.timeNewSegmentedCloudInfo = _seg_msg->header.stamp.toSec();
             FA.segInfo = _seg_msg;
             FA.newSegmentedCloudInfo = true;
+        }
+        else{
+            return ;
         }
 
         if(*_outlier_cloud != nullptr){
@@ -82,22 +100,28 @@ class Main(){
             FA.outlierCloud = *_outlier_cloud;
             FA.newOutlierCloud = true;
         }
+        else{
+            return ;
+        }
 
         FA.runFeatureAssociation();
         *_laser_cloud_corner_last = FA.laserCloudCornerLast;
         *_laser_loud_surf_last = FA.laserCloudSurfLast;
         *_outlier_cloud_last = FA.outlierCloud;
         _laser_odometry = FA.laserOdometry;
-
+        return 0;
     }
 
-    void mapOptimizationM(){
+    int mapOptimizationM(){
 
         if(*_laser_cloud_corner_last != nullptr){
             MO.timeLaserCloudCornerLast = _laser_cloud_corner_last->header.stamp.toSec();
             MO.laserCloudCornerLast->clear();
             MO.laserCloudCornerLast = *_laser_cloud_corner_last;
             MO.newLaserCloudCornerLast = true;
+        }
+        else{
+            return;
         }
 
         if (*_laser_loud_surf_last != nullptr) {
@@ -106,12 +130,18 @@ class Main(){
             MO.laserCloudSurfLast = *_laser_loud_surf_last;
             MO.newLaserCloudSurfLast = true;
         }
+        else{
+            return;
+        }
 
         if(*_outlier_cloud != nullptr){
             MO.timeLaserCloudOutlierLast = *_outlier_cloud->header.stamp.toSec();
             MO.laserCloudOutlierLast->clear();
             MO.laserCloudOutlierLast = *_outlier_cloud;
             newLaserCloudOutlierLast = true;
+        }
+        else{
+            return;
         }
 
         if(_laser_odometry != NULL){
@@ -127,14 +157,23 @@ class Main(){
             MO.transformSum[5] = _laser_odometry->pose.pose.position.z;
             MO.newLaserOdometry = true;
         }
+        else{
+            return ;
+        }
+
+        std::thread loopthread(&mapOptimization::loopClosureThread, &MO);
+        std::thread visualizeMapThread(&mapOptimization::visualizeGlobalMapThread, &MO);
 
         MO.run();
         _odom_aftMapped = MO.odomAftMapped;
-        *_global_mapKey_framesDS = MO.globalMapKeyFramesDS;
-        *_cloud_key_poses3D = MO.cloudKeyPoses3D;
+        // *_global_mapKey_framesDS = MO.globalMapKeyFramesDS;
+        // *_cloud_key_poses3D = MO.cloudKeyPoses3D;
+        loopthread.join();
+        visualizeMapThread.join();
+        return 0;
     };
 
-    void transformFusion(){
+    int transformFusion(){
 
         if (_laser_odometry != NULL) {
             TF.currentHeader = _laser_odometry->header;
@@ -171,6 +210,9 @@ class Main(){
             TF.laserOdometryTrans2.setOrigin(tf::Vector3(transformMapped[3], transformMapped[4], transformMapped[5]));
             tfBroadcaster2.sendTransform(TF.laserOdometryTrans2);
         }
+        else{
+            return 0;
+        }
 
         if (_odom_aftMapped != NULL){
             double roll, pitch, yaw;
@@ -193,6 +235,9 @@ class Main(){
             TF.transformBefMapped[4] = _odom_aftMapped->twist.twist.linear.y;
             TF.transformBefMapped[5] = _odom_aftMapped->twist.twist.linear.z;
         }
+        else{
+            return 0;
+        }
     }
 };
     int main(int argc, char** argv){
@@ -205,55 +250,10 @@ class Main(){
         while (ros::ok())
         {
             ros::spinOnce();
-
-            imageProjectionM();
-            featureAssociationM();
-            mapOptimizationM();
-            transformFusion();
-
+            Main m;
+            m.run();
             rate.sleep();
         }
 
         return 0;
-    } 
-
-    //     if (FA.newSegmentedCloud && FA.newSegmentedCloudInfo && FA.newOutlierCloud &&
-    //         std::abs(FA.timeNewSegmentedCloudInfo - FA.timeNewSegmentedCloud) < 0.05 &&
-    //         std::abs(FA.timeNewOutlierCloud - FA.timeNewSegmentedCloud) < 0.05){
-
-    //         FA.newSegmentedCloud = false;
-    //         FA.newSegmentedCloudInfo = false;
-    //         FA.newOutlierCloud = false;
-    //     }else{
-    //         return;
-    //     }
-    //     /**
-    //         1. Feature Extraction
-    //     */
-    //     FA.adjustDistortion();
-
-    //     FA.calculateSmoothness();
-
-    //     FA.markOccludedPoints();
-
-    //     FA.extractFeatures();
-
-    //     FA.publishCloud(); // cloud for visualization
-    //     /**
-    //     2. Feature Association
-    //     */
-    //     if (!systemInitedLM) {
-    //         FA.checkSystemInitialization();
-    //         return;
-    //     }
-    //     FA.updateInitialGuess();
-
-    //     FA.updateTransformation();
-
-    //     FA.integrateTransformation();
-
-    //     FA.publishOdometry();
-
-    //     FA.publishCloudsLast(); // cloud to mapOptimization
-    
-    // }
+    }
