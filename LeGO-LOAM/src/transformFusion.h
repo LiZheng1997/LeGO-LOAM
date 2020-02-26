@@ -5,9 +5,16 @@
 
 class TransformFusion{
 
+    public:
+        TransformFusion(ros::NodeHandle& node);
+
+        void transformAssociateToMap();
+        void laserOdometryHandler(const nav_msgs::Odometry::ConstPtr& laserOdometry);
+        void odomAftMappedHandler(const nav_msgs::Odometry::ConstPtr& odomAftMapped);
+
     private:
 
-        ros::NodeHandle nh;
+        ros::NodeHandle& nh;
 
         ros::Publisher pubLaserOdometry2;
         ros::Subscriber subLaserOdometry;
@@ -31,13 +38,7 @@ class TransformFusion{
         float transformAftMapped[6];
 
         std_msgs::Header currentHeader;
-        
-    public:
-        TransformFusion(ros::NodeHandle& node);
-
-        void transformAssociateToMap();
-        void laserOdometryHandler(const nav_msgs::Odometry::ConstPtr& laserOdometry);
-        void odomAftMappedHandler(const nav_msgs::Odometry::ConstPtr& odomAftMapped);
+    
 };
 
 #endif // TRANSFORMFUSION_H

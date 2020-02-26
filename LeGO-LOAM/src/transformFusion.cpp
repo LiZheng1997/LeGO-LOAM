@@ -31,8 +31,10 @@
 //     Robotics: Science and Systems Conference (RSS). Berkeley, CA, July 2014.
 
 #include "transformFusion.h"
+#include "lego_loam/utility.h"
 
-TransformFusion::TransformFusion(ros::NodeHandle& node) : nh(node) {
+TransformFusion::TransformFusion(ros::NodeHandle& node): 
+    nh(node){
 
         pubLaserOdometry2 = nh.advertise<nav_msgs::Odometry> ("/integrated_to_init", 5);
         // subLaserOdometry = nh.subscribe<nav_msgs::Odometry>("/laser_odom_to_init", 5, &TransformFusion::laserOdometryHandler, this);

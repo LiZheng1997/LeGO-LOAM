@@ -18,7 +18,7 @@
 class MapOptimization{
 
     public:
-        MapOptimization(ros::NodeHandle& node, Channel<AssociationOut> &input_channel);
+        MapOptimization(ros::NodeHandle& node);
 
         ~MapOptimization();
 
@@ -36,7 +36,7 @@ class MapOptimization{
         noiseModel::Diagonal::shared_ptr odometryNoise;
         noiseModel::Diagonal::shared_ptr constraintNoise;
 
-        ros::NodeHandle nh;
+        ros::NodeHandle& nh;
 
         ros::Publisher pubLaserCloudSurround;
         ros::Publisher pubOdomAftMapped;

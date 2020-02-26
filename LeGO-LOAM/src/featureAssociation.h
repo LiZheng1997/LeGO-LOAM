@@ -56,7 +56,7 @@ class FeatureAssociation{
     
     private:
 
-        ros::NodeHandle nh;
+        ros::NodeHandle& nh;
 
         ros::Subscriber subLaserCloud;
         ros::Subscriber subLaserCloudInfo;

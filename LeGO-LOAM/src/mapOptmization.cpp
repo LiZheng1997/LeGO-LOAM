@@ -33,10 +33,11 @@
 //      IEEE/RSJ International Conference on Intelligent Robots and Systems (IROS). October 2018.
 
 #include "mapOptmization.h"
+#include "lego_loam/utility.h"
 using namespace gtsam;
 
-MapOptimization::MapOptimization(ros::NodeHandle &node)
-    : nh(node)
+MapOptimization::MapOptimization(ros::NodeHandle& node):
+    nh(node)
     {
     	ISAM2Params parameters;
 		parameters.relinearizeThreshold = 0.01;

@@ -33,10 +33,11 @@
 //      IEEE/RSJ International Conference on Intelligent Robots and Systems (IROS). October 2018.
 
 #include "featureAssociation.h"
+#include "lego_loam/utility.h"
 
 
-    FeatureAssociation::FeatureAssociation(ros::NodeHandle &node)
-        : nh(node)
+    FeatureAssociation::FeatureAssociation(ros::NodeHandle& node):
+        nh(node)
         {
 
         // subLaserCloud = nh.subscribe<sensor_msgs::PointCloud2>("/segmented_cloud", 1, &FeatureAssociation::laserCloudHandler, this);

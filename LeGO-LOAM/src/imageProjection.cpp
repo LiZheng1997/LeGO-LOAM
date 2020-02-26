@@ -27,9 +27,11 @@
 // POSSIBILITY OF SUCH DAMAGE.
 
 #include "imageProjection.h"
+#include "lego_loam/utility.h"
 
-ImageProjection::ImageProjection(ros::NodeHandle& nh)
-    : _nh(nh){
+ImageProjection::ImageProjection(ros::NodeHandle& nh): 
+    nh(nh)
+    {
 
     subLaserCloud = nh.subscribe<sensor_msgs::PointCloud2>(pointCloudTopic, 1, &ImageProjection::cloudHandler, this);
 
