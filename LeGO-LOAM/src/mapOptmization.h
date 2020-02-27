@@ -13,6 +13,7 @@
 #include <gtsam/nonlinear/Values.h>
 
 #include <gtsam/nonlinear/ISAM2.h>
+using namespace gtsam;
 
 
 class MapOptimization{
@@ -24,13 +25,13 @@ class MapOptimization{
 
         void run();
 
-    private:
-
-        NonlinearFactorGraph gtSAMgraph;
-        Values initialEstimate;
-        Values optimizedEstimate;
-        ISAM2 *isam;
-        Values isamCurrentEstimate;
+    // private:
+    public:
+        gtsam::NonlinearFactorGraph gtSAMgraph;
+        gtsam::Values initialEstimate;
+        gtsam::Values optimizedEstimate;
+        gtsam::ISAM2 *isam;
+        gtsam::Values isamCurrentEstimate;
 
         noiseModel::Diagonal::shared_ptr priorNoise;
         noiseModel::Diagonal::shared_ptr odometryNoise;
@@ -56,19 +57,19 @@ class MapOptimization{
         tf::StampedTransform aftMappedTrans;
         tf::TransformBroadcaster tfBroadcaster;
 
-        vector<pcl::PointCloud<PointType>::Ptr> cornerCloudKeyFrames;
-        vector<pcl::PointCloud<PointType>::Ptr> surfCloudKeyFrames;
-        vector<pcl::PointCloud<PointType>::Ptr> outlierCloudKeyFrames;
+        std::vector<pcl::PointCloud<PointType>::Ptr> cornerCloudKeyFrames;
+        std::vector<pcl::PointCloud<PointType>::Ptr> surfCloudKeyFrames;
+        std::vector<pcl::PointCloud<PointType>::Ptr> outlierCloudKeyFrames;
 
-        deque<pcl::PointCloud<PointType>::Ptr> recentCornerCloudKeyFrames;
-        deque<pcl::PointCloud<PointType>::Ptr> recentSurfCloudKeyFrames;
-        deque<pcl::PointCloud<PointType>::Ptr> recentOutlierCloudKeyFrames;
+        std::deque<pcl::PointCloud<PointType>::Ptr> recentCornerCloudKeyFrames;
+        std::deque<pcl::PointCloud<PointType>::Ptr> recentSurfCloudKeyFrames;
+        std::deque<pcl::PointCloud<PointType>::Ptr> recentOutlierCloudKeyFrames;
         int latestFrameID;
 
-        vector<int> surroundingExistingKeyPosesID;
-        deque<pcl::PointCloud<PointType>::Ptr> surroundingCornerCloudKeyFrames;
-        deque<pcl::PointCloud<PointType>::Ptr> surroundingSurfCloudKeyFrames;
-        deque<pcl::PointCloud<PointType>::Ptr> surroundingOutlierCloudKeyFrames;
+        std::vector<int> surroundingExistingKeyPosesID;
+        std::deque<pcl::PointCloud<PointType>::Ptr> surroundingCornerCloudKeyFrames;
+        std::deque<pcl::PointCloud<PointType>::Ptr> surroundingSurfCloudKeyFrames;
+        std::deque<pcl::PointCloud<PointType>::Ptr> surroundingOutlierCloudKeyFrames;
         
         PointType previousRobotPosPoint;
         PointType currentRobotPosPoint;
@@ -194,7 +195,7 @@ class MapOptimization{
         float cRoll, sRoll, cPitch, sPitch, cYaw, sYaw, tX, tY, tZ;
         float ctRoll, stRoll, ctPitch, stPitch, ctYaw, stYaw, tInX, tInY, tInZ;
 
-    private:
+    public:
         void allocateMemory();
         void transformAssociateToMap();
         void transformUpdate();
@@ -208,6 +209,7 @@ class MapOptimization{
         pcl::PointCloud<PointType>::Ptr transformPointCloud(
             pcl::PointCloud<PointType>::Ptr cloudIn, PointTypePose *transformIn);
 
+        void imuHandler(const sensor_msgs::Imu::ConstPtr& imuIn);
         void publishTF();
         void publishKeyPosesAndFrames();
         void visualizeGlobalMapThread();

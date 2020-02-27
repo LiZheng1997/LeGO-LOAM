@@ -53,7 +53,7 @@ ImageProjection::ImageProjection(ros::NodeHandle& nh):
     resetParameters();
 }
 
-void allocateMemory(){
+void ImageProjection::allocateMemory(){
 
     laserCloudIn.reset(new pcl::PointCloud<PointType>());
 
@@ -88,7 +88,7 @@ void allocateMemory(){
     queueIndY = new uint16_t[N_SCAN*Horizon_SCAN];
 }
 
-void resetParameters(){
+void ImageProjection::resetParameters(){
     laserCloudIn->clear();
     groundCloud->clear();
     segmentedCloud->clear();
@@ -106,7 +106,7 @@ void resetParameters(){
 
 // ~ImageProjection(){}
 
-void copyPointCloud(const sensor_msgs::PointCloud2ConstPtr& laserCloudMsg){
+void ImageProjection::copyPointCloud(const sensor_msgs::PointCloud2ConstPtr& laserCloudMsg){
 
     cloudHeader = laserCloudMsg->header;
     // cloudHeader.stamp = ros::Time::now(); // Ouster lidar users may need to uncomment this line
@@ -116,7 +116,7 @@ void copyPointCloud(const sensor_msgs::PointCloud2ConstPtr& laserCloudMsg){
     pcl::removeNaNFromPointCloud(*laserCloudIn, *laserCloudIn, indices);
 }
 
-void cloudHandler(const sensor_msgs::PointCloud2ConstPtr& laserCloudMsg){
+void ImageProjection::cloudHandler(const sensor_msgs::PointCloud2ConstPtr& laserCloudMsg){
 
     /*Move this handler to the main function, to process all 
     data in those function and work sequentialy.
@@ -125,7 +125,7 @@ void cloudHandler(const sensor_msgs::PointCloud2ConstPtr& laserCloudMsg){
     copyPointCloud(laserCloudMsg);
 }
 
-void findStartEndAngle(){
+void ImageProjection::findStartEndAngle(){
     // start and end orientation of this cloud
     segMsg.startOrientation = -atan2(laserCloudIn->points[0].y, laserCloudIn->points[0].x);
     segMsg.endOrientation   = -atan2(laserCloudIn->points[laserCloudIn->points.size() - 1].y,
@@ -137,7 +137,7 @@ void findStartEndAngle(){
     segMsg.orientationDiff = segMsg.endOrientation - segMsg.startOrientation;
 }
 
-void projectPointCloud(){
+void ImageProjection::projectPointCloud(){
     // range image projection
     float verticalAngle, horizonAngle, range;
     size_t rowIdn, columnIdn, index, cloudSize; 
@@ -181,7 +181,7 @@ void projectPointCloud(){
 }
 
 
-void groundRemoval(){
+void ImageProjection::groundRemoval(){
     size_t lowerInd, upperInd;
     float diffX, diffY, diffZ, angle;
     // groundMat
@@ -233,7 +233,7 @@ void groundRemoval(){
     }
 }
 
-void cloudSegmentation(){
+void ImageProjection::cloudSegmentation(){
     // segmentation process
     for (size_t i = 0; i < N_SCAN; ++i)
         for (size_t j = 0; j < Horizon_SCAN; ++j)
@@ -291,7 +291,7 @@ void cloudSegmentation(){
     }
 }
 
-void labelComponents(int row, int col){
+void ImageProjection::labelComponents(int row, int col){
     // use std::queue std::vector std::deque will slow the program down greatly
     float d1, d2, alpha, angle;
     int fromIndX, fromIndY, thisIndX, thisIndY; 
@@ -384,7 +384,7 @@ void labelComponents(int row, int col){
 }
 
 
-void publishCloud(){
+void ImageProjection::publishClouds(){
     // 1. Publish Seg Cloud Info
     segMsg.header = cloudHeader;
     // pubSegmentedCloudInfo.publish(segMsg);
@@ -428,4 +428,4 @@ void publishCloud(){
         laserCloudTemp.header.frame_id = "base_link";
         pubFullInfoCloud.publish(laserCloudTemp);
     }
-};
+}

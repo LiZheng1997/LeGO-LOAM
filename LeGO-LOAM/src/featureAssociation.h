@@ -6,7 +6,7 @@
 class FeatureAssociation{
 
     public:
-        FeatureAssociation( ros::NodeHandle& node);
+        FeatureAssociation(ros::NodeHandle& node);
 
         ~FeatureAssociation();
 
@@ -15,11 +15,11 @@ class FeatureAssociation{
     public:
         void initializationValue();
         void updateImuRollPitchYawStartSinCos();
-        void ShiftToStartIMU();
+        void ShiftToStartIMU(float pointTime);
         void VeloToStartIMU();
-        void TransformToStartIMU();
+        void TransformToStartIMU(PointType *p);
         void AccumulateIMUShiftAndRotation();
-        void imuHandler();
+        void imuHandler(const sensor_msgs::Imu::ConstPtr& imuIn);
         void adjustDistortion();
         void calculateSmoothness();
         void markOccludedPoints();
@@ -34,8 +34,8 @@ class FeatureAssociation{
         void AccumulateRotation(float cx, float cy, float cz, float lx, float ly,
                                 float lz, float &ox, float &oy, float &oz);
 
-        void rad2deg(double radians);
-        void deg2rad(double degrees);
+        double rad2deg(double radians);
+        double deg2rad(double degrees);
 
         void findCorrespondingCornerFeatures(int iterCount);
         void findCorrespondingSurfFeatures(int iterCount);
@@ -54,8 +54,8 @@ class FeatureAssociation{
         void adjustOutlierCloud();
         void publishCloudsLast();
     
-    private:
-
+    // private:
+    public:
         ros::NodeHandle& nh;
 
         ros::Subscriber subLaserCloud;

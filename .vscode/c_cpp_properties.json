@@ -3,9 +3,10 @@
         {
             "name": "Linux",
             "includePath": [
-                "${/home/lizheng/Documents/LeGO-LOAM}/**",
-                "/home/lizheng/Documents/LeGO-LOAM/LeGO-LOAM/include",
-                "/home/lizheng/Documents/LeGO-LOAM/LeGO-LOAM/src"
+                "${workspaceFolder}",
+                "/home/lizheng/catkin_ws/src/LeGO-LOAM/LeGO-LOAM/include/lego_loam",
+                "/home/lizheng/catkin_ws/src/LeGO-LOAM/LeGO-LOAM/src",
+                "/usr/local/include"
             ],
             "defines": [],
             "compilerPath": "/usr/bin/gcc",

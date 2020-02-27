@@ -23,7 +23,8 @@ class ImageProjection{
         void labelComponents(int row, int col);
         void publishClouds();
 
-    private:
+    // private:
+    public:
 
         ros::NodeHandle& nh;
 
