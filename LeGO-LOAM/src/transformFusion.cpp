@@ -31,7 +31,7 @@
 //     Robotics: Science and Systems Conference (RSS). Berkeley, CA, July 2014.
 
 #include "transformFusion.h"
-#include "lego_loam/utility.h"
+// #include "lego_loam/utility.h"
 
 TransformFusion::TransformFusion(ros::NodeHandle& node): 
 nh(node){

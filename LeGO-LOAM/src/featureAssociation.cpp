@@ -33,7 +33,7 @@
 //      IEEE/RSJ International Conference on Intelligent Robots and Systems (IROS). October 2018.
 
 #include "featureAssociation.h"
-#include "lego_loam/utility.h"
+// #include "lego_loam/utility.h"
 
 
 FeatureAssociation::FeatureAssociation(ros::NodeHandle& node):

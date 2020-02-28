@@ -27,7 +27,7 @@
 // POSSIBILITY OF SUCH DAMAGE.
 
 #include "imageProjection.h"
-#include "lego_loam/utility.h"
+// #include "lego_loam/utility.h"
 
 ImageProjection::ImageProjection(ros::NodeHandle& nh): 
     nh(nh)

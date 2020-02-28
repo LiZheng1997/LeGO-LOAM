@@ -12,21 +12,21 @@
 
     <!--- LeGO-LOAM -->    
     <arg name="rosbag"  default=""/>
-    <arg name="imu_topic" default="/imu/data"/>
-    <arg name="lidar_topic" default="/velodyne_points"/>
-    <node pkg="lego_loam" type="imageProjection"    name="imageProjection"    output="screen"/>
+    <!-- <arg name="imu_topic" default="/imu/data"/> -->
+    <!-- <arg name="lidar_topic" default="/velodyne_points"/> -->
+    <!-- <node pkg="lego_loam" type="imageProjection"    name="imageProjection"    output="screen"/>
     <node pkg="lego_loam" type="featureAssociation" name="featureAssociation" output="screen"/>
     <node pkg="lego_loam" type="mapOptmization"     name="mapOptmization"     output="screen"/>
-    <node pkg="lego_loam" type="transformFusion"    name="transformFusion"    output="screen"/>
+    <node pkg="lego_loam" type="transformFusion"    name="transformFusion"    output="screen"/> -->
 
     <!-- <rosparam file="$(find lego_loam_bor)/config/loam_config.yaml" command="load"/> -->
 
     <node pkg="lego_loam" type="lego_loam"    name="lego_loam"    output="screen" >
-       <remap from="/lidar_points" to="$(arg lidar_topic)"/>
-       <remap from="/imu/data" to="$(arg imu_topic)"/>
+       <!-- <remap from="/lidar_points" to="$(arg lidar_topic)"/> -->
+       <!-- <remap from="/imu/data" to="$(arg imu_topic)"/> -->
        <param name="rosbag"      value="$(arg rosbag)" type="string" />
-       <param name="imu_topic"   value="$(arg imu_topic)" type="string" />
-       <param name="lidar_topic" value="$(arg lidar_topic)" type="string" />
+       <!-- <param name="imu_topic"   value="$(arg imu_topic)" type="string" /> -->
+       <!-- <param name="lidar_topic" value="$(arg lidar_topic)" type="string" /> -->
     </node>
 
 </launch>
