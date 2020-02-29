@@ -6,10 +6,9 @@
 class ImageProjection{
 
     public:
-
         ImageProjection(ros::NodeHandle& nh);
 
-        ~ImageProjection();
+        ~ImageProjection() = default;
         void cloudHandler(const sensor_msgs::PointCloud2ConstPtr &laserCloudMsg);
 
     public:
