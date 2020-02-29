@@ -25,7 +25,6 @@ class ImageProjection{
 
     // private:
     public:
-
         ros::NodeHandle& nh;
 
         ros::Subscriber subLaserCloud;

@@ -62,4 +62,4 @@ target_link_libraries(transformFusion ${catkin_LIBRARIES} ${PCL_LIBRARIES} ${Ope
 
 add_executable(main src/main.cpp)
 add_dependencies(main ${catkin_EXPORTED_TARGETS} cloud_msgs_gencpp)
-target_link_libraries(main ${catkin_LIBRARIES} ${PCL_LIBRARIES} ${OpenCV_LIBRARIES})
+target_link_libraries(main ${catkin_LIBRARIES} ${PCL_LIBRARIES} ${OpenCV_LIBRARIES} gtsam)
