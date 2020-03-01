@@ -65,7 +65,6 @@ class Main{
             ROS_INFO("No read data from Lidar.");
             return 0;
         }
-        return 1;
     }
 
     //featureAssociation module insdie the Main module, to assciating all features.
@@ -115,7 +114,6 @@ class Main{
         _laser_loud_surf_last = FA.laserCloudSurfLast;
         _outlier_cloud_last = FA.outlierCloud;
         _laser_odometry = FA.laserOdometry;
-        return 1;
     }
 
     //mapOptimization module inside the main module, aiming at genereating the whole map
@@ -191,7 +189,6 @@ class Main{
         // *_cloud_key_poses3D = MO.cloudKeyPoses3D;
         loopthread.join();
         visualizeMapThread.join();
-        return 1;
     }
 
     //transformation module inside the main module, aiming at tramforming the coordinations.
@@ -264,7 +261,6 @@ class Main{
             ROS_INFO("No read data for _odom_aftMapped.");
             return 0;
         }
-        return 1;
     }
     
     //this function is integrating all other four functions for clean coding style
