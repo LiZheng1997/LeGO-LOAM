@@ -8,6 +8,7 @@
 #include <rosbag/view.h>
 #include <rosgraph_msgs/Clock.h>
 
+//This class is defined as a main module to integrate all other four modules.
 class Main{
 
     public:
@@ -32,11 +33,14 @@ class Main{
         nav_msgs::Odometry _odom_aftMapped;//"/aft_mapped_to_init",
 };
 
+    Main::Main(){}
+
+    //imageprojection module for projecting the raw lidar data to image data. 
     int Main::imageProjectionM( ImageProjection& IP){
         _laser_cloudIn  = IP.laserCloudIn; //original point cloud data from ROS message
         ROS_INFO("\033[1;32m---->\033[0m Image Projection Started.");
 
-        if (_laser_cloudIn->points.size() != 0){
+        if (_laser_cloudIn->points.size() != 0){ //runing the core code inside the imageProejction module.
 
             // 2. Start and end angle of a scan
             IP.findStartEndAngle();
@@ -64,8 +68,10 @@ class Main{
         return 1;
     }
 
+    //featureAssociation module insdie the Main module, to assciating all features.
     int Main::featureAssociationM( FeatureAssociation& FA){
-        if (_segmented_cloud->points.size() != 0){
+        
+        if (_segmented_cloud->points.size() != 0){//core codes through ROS messages before, here rearrange them without ROS
             sensor_msgs::PointCloud2 msgIn;
             pcl::toROSMsg(*_segmented_cloud,msgIn);
             FA.cloudHeader = msgIn.header;
@@ -112,9 +118,10 @@ class Main{
         return 1;
     }
 
+    //mapOptimization module inside the main module, aiming at genereating the whole map
     int Main::mapOptimizationM( MapOptimization& MO){
 
-        if(_laser_cloud_corner_last->points.size() != 0){
+        if(_laser_cloud_corner_last->points.size() != 0){//core codes inside this module, adding them here for removing ROS
             sensor_msgs::PointCloud2 msgIn;
             pcl::toROSMsg(*_laser_cloud_corner_last,msgIn);
             MO.timeLaserCloudCornerLast = msgIn.header.stamp.toSec();
@@ -187,6 +194,7 @@ class Main{
         return 1;
     }
 
+    //transformation module inside the main module, aiming at tramforming the coordinations.
     int Main::transformFusionM( TransformFusion& TF){
 
         ROS_INFO("\033[1;32m---->\033[0m Transform Fusion Started.");
@@ -259,6 +267,7 @@ class Main{
         return 1;
     }
     
+    //this function is integrating all other four functions for clean coding style
     void Main::run(ImageProjection& IP,FeatureAssociation& FA,MapOptimization& MO,TransformFusion& TF){
         imageProjectionM(IP);
         featureAssociationM(FA);
@@ -283,7 +292,6 @@ int main(int argc, char** argv){
     // TransformFusion *TF = new TransformFusion(nh);//initiate a TransformFusion instance
     Main main_module;
     // Main *main_module = new Main();
-    // main_module
 
     std::string rosbag;
     // std::string imu_topic;
@@ -357,7 +365,7 @@ int main(int argc, char** argv){
     ROS_INFO("Entire rosbag processed at %.1fX speed", delta_sim / delta_real);
     
     ros::Rate rate(200);
-    while (ros::ok())
+    while (ros::ok())//set the loop here for starting the whole program
     {
         ros::spinOnce();
         // main_module.imageProjectionM(IP);
@@ -366,7 +374,7 @@ int main(int argc, char** argv){
         // main_module.transformFusionM(TF);
         // main_module.run(&IP, &FA, &MO, &TF)
         // main_module->run(*IP,*FA,*MO,*TF);
-        main_module.run(IP,FA,MO, TF);
+        main_module.run(IP,FA,MO,TF);
         rate.sleep();
     }
 
